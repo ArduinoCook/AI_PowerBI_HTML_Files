@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sales Analytics Report</title>
+<style>
+:root{--bg:#e6e6e6;--card:#fff;--ink:#252423;--mute:#605e5c;--line:#252423;--accent:#118dff;--accent2:#12239e;--grid:#e1dfdd;--btn:#fff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#1b1a19;--card:#292827;--ink:#f3f2f1;--mute:#b3b0ad;--line:#f3f2f1;--grid:#484644;--btn:#323130}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#1b1a19;--card:#292827;--ink:#f3f2f1;--mute:#b3b0ad;--line:#f3f2f1;--grid:#484644;--btn:#323130}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI","Helvetica Neue",Arial,sans-serif;min-height:100vh}
+.page{display:none;max-width:1180px;margin:0 auto;padding:20px}
+.page.on{display:block}
+h1{font-size:26px;font-weight:600;margin:0 0 4px}
+.sub{color:var(--mute);font-size:14px;margin:0 0 18px}
+.top{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+.btn{font:inherit;font-size:14px;background:var(--btn);color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:8px 16px;cursor:pointer;text-decoration:none}
+.btn:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:14px}
+.card{background:var(--card);border:2px solid var(--line);border-radius:2px;padding:14px 16px}
+.kpi .t{font-size:14px;color:var(--mute);margin-bottom:6px}
+.kpi .v{font-size:34px;font-weight:600;line-height:1.1}
+.card h2{font-size:15px;font-weight:600;margin:0 0 10px}
+.chart{width:100%;overflow-x:auto}
+svg{display:block;width:100%;height:auto}
+svg text{fill:var(--ink);font-family:inherit}
+.home{display:grid;place-items:center;min-height:80vh}
+.home .card{max-width:620px;width:100%;padding:34px;background:#fff;color:#252423;border-color:#252423}
+.home p{line-height:1.55;font-size:16px;margin:0 0 20px}
+.nav{display:flex;gap:14px;flex-wrap:wrap}
+.nav .btn{font-size:18px;padding:14px 26px;background:#fff;color:#252423;border-color:#252423}
+.nav .btn:hover{background:#118dff;color:#fff}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:14px}
+.tm{position:relative;width:100%;height:380px}
+.tm div{position:absolute;border:2px solid var(--card);padding:6px 8px;font-size:12px;color:#fff;overflow:hidden;line-height:1.25}
+.tm b{display:block;font-weight:600}
+</style>
+</head>
+<body>
+
+<section class="page" id="home">
+  <div class="home"><div class="card">
+    <h1>Sales Analytics Report</h1>
+    <p>An end-to-end Microsoft Fabric project: Azure SQL data is ingested into a lakehouse by a pipeline, modelled in a Direct Lake semantic model and reported here. The report covers sales from 1 January to 23 September 2026.</p>
+    <div class="nav">
+      <a class="btn" href="#executive-summary">Executive Summary</a>
+      <a class="btn" href="#sales-breakdown">Sales Breakdown</a>
+    </div>
+  </div></div>
+</section>
+
+<section class="page" id="executive-summary">
+  <div class="top"><a class="btn" href="#home" aria-label="Back to home">&larr; Back</a></div>
+  <h1>Executive Summary</h1>
+  <p class="sub">Sales performance for 2026</p>
+  <div class="kpis" id="kpis"></div>
+  <div class="card"><h2>Total sales by month</h2><div class="chart" id="line"></div></div>
+</section>
+
+<section class="page" id="sales-breakdown">
+  <div class="top"><a class="btn" href="#home" aria-label="Back to home">&larr; Back</a></div>
+  <h1>Sales Breakdown</h1>
+  <p class="sub">Where the revenue comes from</p>
+  <div class="two">
+    <div class="card"><h2>Total sales by region</h2><div class="chart" id="bar"></div></div>
+    <div class="card"><h2>Total sales by product</h2><div class="tm" id="tm"></div></div>
+  </div>
+</section>
+
+<script>
+var D={"k":{"rev":1105213,"units":487,"cust":43,"tx":120},"mon":[97666,56968,104475,210319,218560,96747,83761,102423,134294],"reg":[["Western Cape",297200],["KwaZulu-Natal",256561],["Gauteng",219498],["Free State",211895],["Eastern Cape",118619],["Mpumalanga",1440]],"prod":[["Laptop",419972],["USB-C Dock",151920],["24-inch Monitor",118764],["Printer",103563],["Office Chair",97972],["Keyboard",53124],["Webcam",49409],["External SSD 1TB",39578],["Wireless Mouse",26138],["Headset",23219],["Monitor 24 Inch",5798],["External SSD",3398],["Bluetooth Speaker",3000],["Laptop Stand",2520],["Mechanical Keyboard",2500],["Laptop Backpack",1598],["USB Flash Drive",1440],["USB-C Hub",1300]]};
+var MONTHS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep"];
+var COLORS=["#118dff","#12239e","#e66c37","#6b007b","#e044a7","#744ec2","#d9b300","#d64550","#197278","#1aab40"];
+var fmt=function(n){return "R"+Math.round(n).toLocaleString("en-ZA").replace(/\u00a0/g," ")};
+var short=function(n){return n>=1e6?(n/1e6).toFixed(2)+"M":n>=1e3?Math.round(n/1e3)+"K":""+n};
+var NS="http://www.w3.org/2000/svg";
+
+// KPI cards
+[["Total Sales Revenue",fmt(D.k.rev)],["Total Units Sold",D.k.units.toLocaleString("en-ZA")],["Distinct Customers",D.k.cust],["Total Transactions",D.k.tx]].forEach(function(k){
+  var d=document.createElement("div");d.className="card kpi";
+  d.innerHTML='<div class="t">'+k[0]+'</div><div class="v">'+k[1]+'</div>';
+  document.getElementById("kpis").appendChild(d);
+});
+
+// Line chart
+(function(){
+  var W=1000,H=360,L=70,R=20,T=24,B=40,max=250000,n=D.mon.length;
+  var x=function(i){return L+i*(W-L-R)/(n-1)},y=function(v){return T+(H-T-B)*(1-v/max)};
+  var s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Line chart of total sales by month, January to September 2026">';
+  for(var g=0;g<=5;g++){var v=g*50000;s+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+y(v)+'" y2="'+y(v)+'" stroke="var(--grid)"/><text x="'+(L-8)+'" y="'+(y(v)+4)+'" text-anchor="end" font-size="12">'+(v?short(v):"0")+'</text>'}
+  var p=D.mon.map(function(v,i){return (i?"L":"M")+x(i)+" "+y(v)}).join(" ");
+  s+='<path d="'+p+'" fill="none" stroke="#118dff" stroke-width="3"/>';
+  D.mon.forEach(function(v,i){s+='<circle cx="'+x(i)+'" cy="'+y(v)+'" r="4.5" fill="#118dff"/><text x="'+x(i)+'" y="'+(y(v)-11)+'" text-anchor="middle" font-size="12">'+short(v)+'</text><text x="'+x(i)+'" y="'+(H-14)+'" text-anchor="middle" font-size="12">'+MONTHS[i]+'</text>'});
+  document.getElementById("line").innerHTML=s+"</svg>";
+})();
+
+// Clustered bar chart (regions)
+(function(){
+  var W=560,rowH=48,L=120,R=70,T=6,H=T+rowH*D.reg.length+6,max=D.reg[0][1];
+  var s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Bar chart of total sales by region">';
+  D.reg.forEach(function(r,i){var y=T+i*rowH,w=(W-L-R)*r[1]/max;
+    s+='<text x="'+(L-8)+'" y="'+(y+rowH/2+4)+'" text-anchor="end" font-size="13">'+r[0]+'</text><rect x="'+L+'" y="'+(y+8)+'" width="'+Math.max(w,2)+'" height="'+(rowH-16)+'" fill="#118dff"/><text x="'+(L+w+8)+'" y="'+(y+rowH/2+4)+'" font-size="13">'+short(r[1])+'</text>'});
+  document.getElementById("bar").innerHTML=s+"</svg>";
+})();
+
+// Treemap (products)
+(function(){
+  var el=document.getElementById("tm"),total=D.prod.reduce(function(a,p){return a+p[1]},0),out=[];
+  function lay(items,x,y,w,h){
+    if(!items.length)return;
+    if(items.length==1){out.push([items[0],x,y,w,h]);return}
+    var sum=items.reduce(function(a,p){return a+p[1]},0),acc=0,k=0;
+    while(k<items.length-1&&acc+items[k][1]<sum/2){acc+=items[k][1];k++}
+    if(k==0)k=1;acc=items.slice(0,k).reduce(function(a,p){return a+p[1]},0);
+    var f=acc/sum;
+    if(w>=h){lay(items.slice(0,k),x,y,w*f,h);lay(items.slice(k),x+w*f,y,w*(1-f),h)}
+    else{lay(items.slice(0,k),x,y,w,h*f);lay(items.slice(k),x,y+h*f,w,h*(1-f))}
+  }
+  lay(D.prod,0,0,100,100);
+  out.forEach(function(o,i){
+    var d=document.createElement("div");
+    d.style.cssText="left:"+o[1]+"%;top:"+o[2]+"%;width:"+o[3]+"%;height:"+o[4]+"%;background:"+COLORS[i%COLORS.length];
+    d.title=o[0][0]+": "+fmt(o[0][1]);
+    if(o[3]>7&&o[4]>9)d.innerHTML="<b>"+o[0][0]+"</b>"+short(o[0][1]);
+    el.appendChild(d);
+  });
+})();
+
+// Page navigation (hash routing)
+function route(){
+  var id=location.hash.replace("#","");
+  if(!document.getElementById(id)||!document.getElementById(id).classList.contains("page"))id="home";
+  document.querySelectorAll(".page").forEach(function(p){p.classList.toggle("on",p.id===id)});
+  window.scrollTo(0,0);
+}
+window.addEventListener("hashchange",route);route();
+</script>
+</body>
+</html>
